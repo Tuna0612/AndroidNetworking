@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AndroidFinal</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_view">ViewActivity</string>
+    <string name="ok">OK</string>
+
+    <string name="example_title">Save Image</string>
+    <string name="example_subtitle">You sure to save your image</string>
+    <string name="delete_subtitle">You sure to delete your favorite image</string>
+    <string name="dismiss">Cancel</string>
+</resources>
