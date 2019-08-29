@@ -3,17 +3,20 @@ package com.sean.anw;
 import android.Manifest;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -177,7 +180,7 @@ public class ViewImageActivity extends AppCompatActivity {
         fabWallpaper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ViewImageActivity.this, "Chức năng này đang update", Toast.LENGTH_SHORT).show();
+                setWallpaper();
                 hideFloatingButton();
             }
         });
@@ -235,6 +238,81 @@ public class ViewImageActivity extends AppCompatActivity {
                 });
     }
 
+//    private void startShare() {
+//        Intent intent = getIntent();
+//        final String getSourceUrl = intent.getStringExtra("sourceUrl");
+//        link = getSourceUrl;
+//        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+//        StrictMode.setVmPolicy(builder.build());
+//        Uri bmpUri = (Uri) getLocalBitmapUri(getSourceUrl);
+//        if (bmpUri != null) {
+//            // Construct a ShareIntent with link to image
+//            Intent shareIntent = new Intent();
+//            shareIntent.setAction(Intent.ACTION_SEND);
+//            shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
+//            shareIntent.setType("image/*");
+//            // Launch sharing dialog for image
+//            startActivity(Intent.createChooser(shareIntent, "Share Image"));
+//        } else {
+//            Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+//        }
+//
+//    }
+//
+//    private Uri getLocalBitmapUri(String imageView) {
+//        Drawable drawable = imageView.getDrawable();
+//        Bitmap bmp = null;
+//        if (drawable instanceof BitmapDrawable) {
+//            bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+//        } else {
+//            return null;
+//        }
+//        // Store image to default external storage directory
+//        Uri bmpUri = null;
+//        try {
+//            File file = new File(Environment.getExternalStoragePublicDirectory(
+//                    Environment.DIRECTORY_DOWNLOADS), "share_image_" + System.currentTimeMillis() + ".png");
+//            file.getParentFile().mkdirs();
+//            FileOutputStream out = new FileOutputStream(file);
+//            bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
+//            out.close();
+//            bmpUri = Uri.fromFile(file);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return bmpUri;
+//    }
+
+    public void setWallpaper() {
+        Intent intent = getIntent();
+        final String getSourceUrl = intent.getStringExtra("sourceUrl");
+        link = getSourceUrl;
+        Picasso.get().load(getSourceUrl).into(new Target() {
+
+
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                WallpaperManager wallpaperManager = WallpaperManager.getInstance(ViewImageActivity.this);
+                try {
+                    wallpaperManager.setBitmap(bitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(ViewImageActivity.this, "Wallpaper Changed", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                Toast.makeText(ViewImageActivity.this, "Loading image failed", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                Toast.makeText(ViewImageActivity.this, "Downloading image", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void hideFloatingButton() {
         fabDownload.hide(true);
         fabWallpaper.hide(true);
@@ -247,99 +325,6 @@ public class ViewImageActivity extends AppCompatActivity {
         fabWallpaper.show(true);
         fabShare.show(true);
         fabFavorite.show(true);
-
-//    public void ondowload(View view) {
-//        new DownloadFileFromURL(ViewImageActivity.this).execute(link);
-//    }
-
-        class DownloadFileFromURL extends AsyncTask<String, Integer, String> {
-            public Context context;
-
-            public DownloadFileFromURL(Context context) {
-                this.context = context;
-            }
-
-            /**
-             * Before starting background thread
-             */
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                System.out.println("Starting download");
-                progressBar = new ProgressDialog(ViewImageActivity.this);
-                progressBar.setMessage("Loading... Please wait...");
-                progressBar.setIndeterminate(false);
-                progressBar.setCancelable(false);
-                progressBar.show();
-            }
-
-            /**
-             * Downloading file in background thread
-             */
-            @Override
-            protected String doInBackground(String... f_url) {
-                int count;
-                String param = f_url[0];
-                try {
-                    String root = Environment.getExternalStorageDirectory().toString();
-                    URL url = new URL(param);
-                    URLConnection connection = url.openConnection();
-                    connection.connect();
-                    int lenghtOfFile = connection.getContentLength();
-                    // input stream to read file - with 8k buffer
-                    InputStream input = new BufferedInputStream(url.openStream(), 8192);
-                    // Output stream to write file
-                    int start = link.length() - 10;
-                    int end = link.length();
-
-                    OutputStream output = new FileOutputStream(root + "/" + link.substring(start, end));
-
-                    byte data[] = new byte[1024];
-
-                    long total = 0;
-                    while ((count = input.read(data)) != -1) {
-                        total += count;
-                        // publishing the progress....
-                        // After this onProgressUpdate will be called
-                        publishProgress((int) (total * 100 / lenghtOfFile));
-                        // writing data to file
-                        output.write(data, 0, count);
-                    }
-                    // flushing output
-                    output.flush();
-                    // closing streams
-                    output.close();
-                    input.close();
-
-                } catch (Exception e) {
-                    Log.e("Error: ", e.getMessage());
-                }
-                return null;
-            }
-
-            /**
-             * After completing background task
-             **/
-            @Override
-            protected void onPostExecute(String file_url) {
-                progressBar.dismiss();
-                AlertDialog.Builder builder = new AlertDialog.Builder(ViewImageActivity.this);
-
-                builder.setTitle("Download Success!!!");
-                builder.setMessage("Succeed!!!");
-                builder.setCancelable(true);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-            }
-
-        }
-
 
     }
 }

@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void getData(int page,int per_page) {
-        Retrofit.getInstance().getPhoto("flickr.groups.pools.getPhotos","89653c0e8feaab4d132f1f5b21bf7753","14611226@N25","license,tags,media,url_q,url_n,url_c,url_l,url_h,url_k,url_o",per_page,page,"json",1).enqueue(new Callback<Wallpaper>() {
+        Retrofit.getInstance().getPhoto("flickr.groups.pools.getPhotos","89653c0e8feaab4d132f1f5b21bf7753","14611062@N25","license,tags,media,url_q,url_n,url_c,url_l,url_h,url_k,url_o",per_page,page,"json",1).enqueue(new Callback<Wallpaper>() {
             @Override
             public void onResponse(@NonNull Call<Wallpaper> call, @NonNull Response<Wallpaper> response) {
                 spotsDialog.dismiss();
